@@ -12,21 +12,23 @@ class FC:
     
     def initialize_weights(self):
         if self.initialize_method == "random":
-            # TODO: Initialize weights with random values using np.random.randn
-            return None * 0.01
+            # DONE:Initialize weights with random values using np.random.randn
+            return np.random.randn(self.output_size, self.input_size) * 0.01
 
         elif self.initialize_method == "xavier":
-            return None
+            scale = np.sqrt(1 / self.input_size)
+            return np.random.uniform(-scale, scale, size=(self.output_size, self.input_size))
 
         elif self.initialize_method == "he":
-            return None
+            scale = np.sqrt(2 / self.input_size)
+            return np.random.randn(self.output_size, self.input_size) * scale
 
         else:
             raise ValueError("Invalid initialization method")
     
     def initialize_bias(self):
-        # TODO: Initialize bias with zeros
-        return np.zeros((None, 1))
+        # DONE: Initialize bias with zeros
+        return np.zeros((self.output_size, 1))
     
     def forward(self, A_prev):
         """
@@ -41,15 +43,15 @@ class FC:
         self.input_shape = A_prev.shape
         A_prev_tmp = np.copy(A_prev)
 
-        # TODO: Implement forward pass for fully connected layer
-        if None: # check if A_prev is output of convolutional layer
-            batch_size = None
-            A_prev_tmp = A_prev_tmp.reshape(None, -1).T
+        # DONE: Implement forward pass for fully connected layer
+        if len(A_prev.shape) > 2: # check if A_prev is output of convolutional layer
+            batch_size = A_prev.shape[0]
+            A_prev_tmp = A_prev_tmp.reshape(batch_size, -1).T
         self.reshaped_shape = A_prev_tmp.shape
         
-        # TODO: Forward part
-        W, b = None
-        Z = None @ None + None
+        # DONE: Forward part
+        W, b = self.parameters
+        Z = np.dot(W, A_prev_tmp) + b
         return Z
     
     def backward(self, dZ, A_prev):
@@ -63,19 +65,22 @@ class FC:
                 grads: list of gradients for the weights and bias
         """
         A_prev_tmp = np.copy(A_prev)
-        if None: # check if A_prev is output of convolutional layer
-            batch_size = None
-            A_prev_tmp = A_prev_tmp.reshape(None, -1).T
+        if len(A_prev.shape) > 2: # check if A_prev is output of convolutional layer
+            batch_size = A_prev.shape[0]
+            A_prev_tmp = A_prev_tmp.reshape(batch_size, -1).T
 
-        # TODO: backward part
-        W, b = None
-        dW = None @ None.T / None
-        db = np.sum(None, axis=1, keepdims=True) / None
-        dA_prev = None.T @ None
+        # DONE: Backward part
+        W, b = self.parameters
+        dW = np.dot(dZ, A_prev_tmp.T) / A_prev_tmp.shape[1]
+        db = np.sum(dZ, axis=1, keepdims=True) / A_prev_tmp.shape[1]
+        dA_prev_tmp = np.dot(W.T, dZ)
         grads = [dW, db]
+
         # reshape dA_prev to the shape of A_prev
-        if None:    # check if A_prev is output of convolutional layer
-            dA_prev = dA_prev.T.reshape(self.input_shape)
+        if len(A_prev.shape) > 2:    # check if A_prev is output of convolutional layer
+            dA_prev = dA_prev_tmp.T.reshape(self.input_shape)
+        else:
+            dA_prev = dA_prev_tmp.T
         return dA_prev, grads
     
     def update_parameters(self, optimizer, grads):
