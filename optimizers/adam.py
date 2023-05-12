@@ -1,7 +1,7 @@
 import numpy as np
 from .gradientdescent import GradientDescent
 
-# TODO: Implement Adam optimizer
+# DONE: Implement Adam optimizer
 class Adam:
     def __init__(self, layers_list, learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8):
         self.layers = layers_list
@@ -11,21 +11,22 @@ class Adam:
         self.epsilon = epsilon
         self.V = {}
         self.S = {}
-        for None in layers_list:
-            # TODO: Initialize V and S for each layer (v and s are lists of zeros with the same shape as the parameters)
-            v = [None for p in layers_list[None].parameters]
-            s = [None for p in layers_list[None].parameters]
-            self.V[None] = v
-            self.S[None] = s
+        for layer_idx, layer in enumerate(layers_list):
+            # DONE: Initialize V and S for each layer (v and s are lists of zeros with the same shape as the parameters)
+            v = [np.zeros_like(p) for p in layer.parameters]
+            s = [np.zeros_like(p) for p in layer.parameters]
+            self.V[layer_idx] = v
+            self.S[layer_idx] = s
         
     def update(self, grads, name, epoch):
         layer = self.layers[None]
         params = []
-        # TODO: Implement Adam update
-        for None in range(len(grads)):
-            self.V[None][None] = None * None + (1 - None) * None
-            self.S[None][None] = None * None  +(1 - None) * np.square(None)
-            self.V[None][None] /= (1 - np.power(self.beta1, epoch)) # TODO: correct V
-            self.S[None][None] /= (1 - np.power(self.beta2, epoch)) # TODO: correct S
-            params.append(None - None * None / (np.sqrt(None) + None))
+        for param_idx in range(len(grads)):
+            # DONE: Implement Adam update            
+            self.V[name][param_idx] = self.beta1 * self.V[name][param_idx] + (1 - self.beta1) * grads[param_idx]
+            self.S[name][param_idx] = self.beta2 * self.S[name][param_idx] + (1 - self.beta2) * np.square(grads[param_idx])
+            V_corrected = self.V[name][param_idx] / (1 - np.power(self.beta1, epoch))
+            S_corrected = self.S[name][param_idx] / (1 - np.power(self.beta2, epoch))
+            params.append(params[param_idx] - self.learning_rate * V_corrected / (np.sqrt(S_corrected) + self.epsilon))
+
         return params

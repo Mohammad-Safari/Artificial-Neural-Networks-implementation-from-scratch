@@ -1,4 +1,4 @@
-# TODO: Implement the gradient descent optimizer
+# DONE:  Implement the gradient descent optimizer
 class GD:
     def __init__(self, layers_list: dict, learning_rate: float):
         """
@@ -21,7 +21,8 @@ class GD:
         """
         layer = self.layers[None]
         params = []
-        #TODO: Implement gradient descent update
-        for None in range(len(grads)):
-            params.append(None - None * None)
+        # DONE:  Implement gradient descent update
+        for param_idx in range(len(grads)):
+            params.append(params[param_idx] - self.learning_rate * grads[param_idx])
+
         return params
