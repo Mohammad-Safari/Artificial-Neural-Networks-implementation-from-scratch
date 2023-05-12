@@ -19,14 +19,16 @@ class Conv2D:
         returns:
             weights: initialized kernel with shape: (kernel_size[0], kernel_size[1], in_channels, out_channels)
         """
-        # TODO: Implement initialization of weights
+        # DONE: Implement initialization of weights
         
         if self.initialize_method == "random":
-            return None * 0.01
+            return np.random.randn(self.kernel_size[0], self.kernel_size[1], self.in_channels, self.out_channels) * 0.01
         if self.initialize_method == "xavier":
-            return None
+            scale = np.sqrt(6 / (self.in_channels + self.out_channels))
+            return np.random.uniform(-scale, scale, size=(self.kernel_size[0], self.kernel_size[1], self.in_channels, self.out_channels))
         if self.initialize_method == "he":
-            return None
+            scale = np.sqrt(2 / self.in_channels)
+            return np.random.randn(self.kernel_size[0], self.kernel_size[1], self.in_channels, self.out_channels) * scale
         else:
             raise ValueError("Invalid initialization method")
     
@@ -37,8 +39,8 @@ class Conv2D:
             bias: initialized bias with shape: (1, 1, 1, out_channels)
         
         """
-        # TODO: Implement initialization of bias
-        return None
+        # DONE: Implement initialization of bias
+        return np.zeros((1, 1, 1, self.out_channels))
     
     def target_shape(self, input_shape):
         """
@@ -48,9 +50,9 @@ class Conv2D:
         returns:
             target_shape: shape of the output of the convolutional layer
         """
-        # TODO: Implement calculation of target shape
-        H = None
-        W = None
+        # DONE: Implement calculation of target shape
+        H = int((input_shape[0] + 2*self.padding[0] - self.kernel_size[0]) / self.stride[0]) + 1
+        W = int((input_shape[1] + 2*self.padding[1] - self.kernel_size[1]) / self.stride[1]) + 1
         return (H, W)
     
     def pad(self, A, padding, pad_value=0):
@@ -76,10 +78,10 @@ class Conv2D:
         returns:
             Z: convolved value
         """
-        # TODO: Implement single step convolution
-        Z = None    # hint: element-wise multiplication
-        Z = None    # hint: sum over all elements
-        Z = None    # hint: add bias as type float using np.float(None)
+        # DONE: Implement single step convolution
+        Z = np.multiply(a_slic_prev, W)
+        Z = np.sum(Z)
+        Z = float(Z + b)
         return Z
 
     def forward(self, A_prev):
@@ -91,25 +93,26 @@ class Conv2D:
             returns:
                 A: output of the convolutional layer
         """
-        # TODO: Implement forward pass
-        W, b = None
-        (batch_size, H_prev, W_prev, C_prev) = None
-        (kernel_size_h, kernel_size_w, C_prev, C) = None
-        stride_h, stride_w = None
-        padding_h, padding_w = None
-        H, W = None
-        Z = None
-        A_prev_pad = None # hint: use self.pad()
-        for i in range(None):
-            for h in range(None):
-                h_start = None
-                h_end = h_start + None
-                for w in range(None):
-                    w_start = None
-                    w_end = w_start + None
-                    for c in range(None):
-                        a_slice_prev = A_prev_pad[i, h_start:h_end, w_start:w_end, :]
-                        Z[i, h, w, c] = None # hint: use self.single_step_convolve()
+        # DONE:  Implement forward pass
+        W, b = self.parameters
+        (batch_size, H_prev, W_prev, C_prev) = A_prev.shape
+        (kernel_size_h, kernel_size_w, C_prev, C) = W.shape
+        stride_h, stride_w = self.stride
+        padding_h, padding_w = self.padding
+        H, W = self.target_shape((H_prev, W_prev))
+        Z = np.zeros((batch_size, H, W,C))
+        A_prev_pad = self.pad(A_prev, (padding_h, padding_w))
+        for i in range(batch_size):
+            a_prev_pad = A_prev_pad[i]
+            for h in range(H):
+                h_start = h*stride_h
+                h_end = h_start + kernel_size_h
+                for w in range(W):
+                    w_start = w*stride_w
+                    w_end = w_start + kernel_size_w
+                    for c in range(C):
+                        a_slice_prev = a_prev_pad[h_start:h_end, w_start:w_end, :]
+                        Z[i, h, w, c] = self.single_step_convolve(a_slice_prev, W[..., c], b[..., c])
         return Z
 
     def backward(self, dZ, A_prev):
@@ -123,33 +126,33 @@ class Conv2D:
             dA_prev: gradient of the cost with respect to the input of the convolutional layer
             gradients: list of gradients with respect to the weights and bias
         """
-        # TODO: Implement backward pass
-        W, b = None
-        (batch_size, H_prev, W_prev, C_prev) = None
-        (kernel_size_h, kernel_size_w, C_prev, C) = None
-        stride_h, stride_w = None
-        padding_h, padding_w = None
-        H, W = None
-        dA_prev = None  # hint: same shape as A_prev
-        dW = None    # hint: same shape as W
-        db = None    # hint: same shape as b
-        A_prev_pad = None # hint: use self.pad()
-        dA_prev_pad = None # hint: use self.pad()
-        for i in range(None):
+        # DONE:  Implement backward pass
+        W, b = self.parameters
+        (batch_size, H_prev, W_prev, C_prev) = A_prev.shape
+        (kernel_size_h, kernel_size_w, C_prev, C) = W.shape
+        stride_h, stride_w = self.stride
+        padding_h, padding_w = self.padding
+        H, W = self.target_shape((H_prev, W_prev))
+        dA_prev = np.zeros_like(A_prev)
+        dW = np.zeros_like(W)
+        db = np.zeros_like(b)
+        A_prev_pad = self.pad(A_prev, (padding_h, padding_w))
+        dA_prev_pad = self.pad(dA_prev, (padding_h, padding_w))
+        for i in range(batch_size):
             a_prev_pad = A_prev_pad[i]
             da_prev_pad = dA_prev_pad[i]
-            for h in range(None):
-                for w in range(None):
-                    for c in range(None):
-                        h_start = None
-                        h_end = h_start + None
-                        w_start = None
-                        w_end = w_start + None
+            for h in range(H):
+                for w in range(W):
+                    for c in range(C):
+                        h_start = h*stride_h
+                        h_end = h_start + kernel_size_h
+                        w_start = w*stride_w
+                        w_end = w_start + kernel_size_w
                         a_slice = a_prev_pad[h_start:h_end, w_start:w_end, :]
-                        da_prev_pad += None # hint: use element-wise multiplication of dZ and W
-                        dW[..., c] += None # hint: use element-wise multiplication of dZ and a_slice
-                        db[..., c] += None # hint: use dZ
-            dA_prev[i, :, :, :] = None # hint: remove padding (trick: pad:-pad)
+                        da_prev_pad[h_start:h_end, w_start:w_end, :] += W[..., c] * dZ[i, h, w, c]
+                        dW[..., c] += a_slice * dZ[i, h, w, c]
+                        db[..., c] += dZ[i, h, w, c]
+            dA_prev[i, :, :, :] = da_prev_pad[padding_h:-padding_h, padding_w:-padding_w, :]
         grads = [dW, db]
         return dA_prev, grads
     
