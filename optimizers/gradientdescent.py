@@ -19,10 +19,9 @@ class GD:
             returns:
                 params: list of updated parameters
         """
-        layer = self.layers[None]
+        layer = self.layers[name]
         params = []
         # DONE:  Implement gradient descent update
-        for param_idx in range(len(grads)):
-            params.append(params[param_idx] - self.learning_rate * grads[param_idx])
-
+        for param_index in range(len(grads)):
+            params.append(layer.parameters[param_index] - self.learning_rate * grads[param_index])
         return params

@@ -49,7 +49,7 @@ class Sigmoid(Activation):
             returns:
                 derivative of the cost with respect to Z
         """
-        A = self.forward(Z)
+        A = 1 / (1 + np.exp(-Z))
         dZ = dA * A * (1 - A)
         return dZ
     
@@ -102,7 +102,7 @@ class Tanh(Activation):
             returns:
                 derivative of the cost with respect to Z
         """
-        A = self.forward(Z)
+        A = np.tanh(Z)
         dZ = (1 - A**2) * dA
         return dZ
     

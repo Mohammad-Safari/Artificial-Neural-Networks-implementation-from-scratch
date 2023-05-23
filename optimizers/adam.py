@@ -1,5 +1,5 @@
 import numpy as np
-from .gradientdescent import GradientDescent
+from .gradientdescent import GD
 
 # DONE: Implement Adam optimizer
 class Adam:

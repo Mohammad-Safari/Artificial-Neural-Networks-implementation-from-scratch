@@ -80,7 +80,7 @@ class FC:
         if len(A_prev.shape) > 2:    # check if A_prev is output of convolutional layer
             dA_prev = dA_prev_tmp.T.reshape(self.input_shape)
         else:
-            dA_prev = dA_prev_tmp.T
+            dA_prev = dA_prev_tmp
         return dA_prev, grads
     
     def update_parameters(self, optimizer, grads):
