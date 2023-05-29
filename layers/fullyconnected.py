@@ -83,11 +83,11 @@ class FC:
             dA_prev = dA_prev_tmp
         return dA_prev, grads
     
-    def update_parameters(self, optimizer, grads):
+    def update_parameters(self, optimizer, grads, epoch):
         """
         Update the parameters of the layer.
             args:
                 optimizer: optimizer object
                 grads: list of gradients for the weights and bias
         """
-        self.parameters = optimizer.update(grads, self.name)
+        self.parameters = optimizer.update(grads, self.name, epoch)

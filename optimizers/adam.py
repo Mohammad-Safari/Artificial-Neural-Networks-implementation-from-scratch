@@ -1,4 +1,8 @@
 import numpy as np
+from layers.convolution2d import Conv2D
+
+from layers.fullyconnected import FC
+from layers.maxpooling2d import MaxPool2D
 from .gradientdescent import GD
 
 # DONE: Implement Adam optimizer
@@ -12,14 +16,16 @@ class Adam:
         self.V = {}
         self.S = {}
         for layer_idx, layer in enumerate(layers_list):
+            if isinstance(layers_list[layer], (Conv2D, FC)) != True:
+                continue
             # DONE: Initialize V and S for each layer (v and s are lists of zeros with the same shape as the parameters)
-            v = [np.zeros_like(p) for p in layer.parameters]
-            s = [np.zeros_like(p) for p in layer.parameters]
-            self.V[layer_idx] = v
-            self.S[layer_idx] = s
+            v = [np.zeros_like(p) for p in layers_list[layer].parameters]
+            s = [np.zeros_like(p) for p in layers_list[layer].parameters]
+            self.V[layer] = v
+            self.S[layer] = s
         
     def update(self, grads, name, epoch):
-        layer = self.layers[None]
+        layer = self.layers[name]
         params = []
         for param_idx in range(len(grads)):
             # DONE: Implement Adam update            
@@ -27,6 +33,6 @@ class Adam:
             self.S[name][param_idx] = self.beta2 * self.S[name][param_idx] + (1 - self.beta2) * np.square(grads[param_idx])
             V_corrected = self.V[name][param_idx] / (1 - np.power(self.beta1, epoch))
             S_corrected = self.S[name][param_idx] / (1 - np.power(self.beta2, epoch))
-            params.append(params[param_idx] - self.learning_rate * V_corrected / (np.sqrt(S_corrected) + self.epsilon))
+            params.append(layer.parameters[param_idx] - self.learning_rate * V_corrected / (np.sqrt(S_corrected) + self.epsilon))
 
         return params

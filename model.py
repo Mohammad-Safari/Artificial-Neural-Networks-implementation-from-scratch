@@ -103,7 +103,7 @@ class Model:
                 dZ = None
         return grads
 
-    def update(self, grads):
+    def update(self, grads, epoch):
         """
         Update the model.
         args:
@@ -112,9 +112,9 @@ class Model:
         for name,layer in self.model.items():
             # hint check if the layer is a layer and also is not a maxpooling layer
             if self.is_layer(layer) and not isinstance(layer, MaxPool2D):
-                layer.update_parameters(self.optimizer, grads[name])
+                layer.update_parameters(self.optimizer, grads[name], epoch)
 
-    def go_each_epoch(self, x, y, batch_size, order, m):
+    def go_each_epoch(self, x, y, batch_size, order, m, epoch):
         """
         One epoch of training.
         args:
@@ -133,7 +133,7 @@ class Model:
             cost += self.criterion.compute(AL, by)
             dAL = self.criterion.backward(AL, by)
             grads = self.backward(dAL, tmp, bx)
-            self.update(grads)
+            self.update(grads, epoch)
         return cost / (m // batch_size)
 
     def save(self, name):
@@ -227,9 +227,10 @@ class Model:
         val_cost = []
         # NOTICE: if your inputs are 4 dimensional m = X.shape[0] else m = X.shape[1]
         m = X.shape[0] if X.ndim == 4 else X.shape[1]
+        epoch = 1
         for e in tqdm.tqdm(range(epochs)):
             order = self.shuffle(m, shuffling)
-            cost = self.go_each_epoch(X, y, batch_size, order, m)
+            cost = self.go_each_epoch(X, y, batch_size, order, m, epoch)
             train_cost.append(cost)
             if val is not None:
                 val_cost.append(self.compute_loss(val[0], val[1], batch_size))
@@ -241,6 +242,7 @@ class Model:
                 print("\nEpoch {}: train cost = {}".format(e+1, cost))
                 if val is not None:
                     print("\nEpoch {}: val cost = {}".format(e+1, val_cost[-1]))
+            epoch += 1
         
         if save_after is not None:
             self.save(save_after)

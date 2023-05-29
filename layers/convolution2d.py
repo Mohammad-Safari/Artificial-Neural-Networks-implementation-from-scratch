@@ -156,11 +156,11 @@ class Conv2D:
         grads = [dW, db]
         return dA_prev, grads
     
-    def update_parameters(self, optimizer, grads):
+    def update_parameters(self, optimizer, grads, epoch):
         """
         Update parameters of the convolutional layer.
         args:
             optimizer: optimizer to use for updating parameters
             grads: list of gradients with respect to the weights and bias
         """
-        self.parameters = optimizer.update(grads, self.name)
+        self.parameters = optimizer.update(grads, self.name, epoch)
