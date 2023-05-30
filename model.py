@@ -154,7 +154,7 @@ class Model:
             model, criterion, optimizer, layers_names
         """
         with open(name, 'rb') as f:
-            return pickle.load(f)
+            (self.model, self.criterion, self.optimizer, self.layers_names) = pickle.load(f)
         
     def shuffle(self, m, shuffling):
         order = list(range(m))
