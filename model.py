@@ -199,14 +199,14 @@ class Model:
             loss
         """
         # DONE: Implement compute loss
-        m = X.shape[0]
+        m = X.shape[1]
         order = self.shuffle(m, False)
         cost = 0
         for b in range(0, m, batch_size):
             bx, by = self.batch(X, y, batch_size, b, order)
             tmp = self.forward(bx)
             AL = tmp[-1]
-            cost += self.criterion(AL, by)
+            cost += self.criterion.compute(AL, by)
         return cost / (m // batch_size)
 
     def train(self, X, y, epochs, val=None, batch_size=32, shuffling=False, verbose=1, save_after=None):
