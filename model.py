@@ -114,7 +114,7 @@ class Model:
             if self.is_layer(layer) and not isinstance(layer, MaxPool2D):
                 layer.update_parameters(self.optimizer, grads[name], epoch)
 
-    def go_each_epoch(self, x, y, batch_size, order, m, epoch):
+    def one_epoch(self, x, y, batch_size, order, m, epoch):
         """
         One epoch of training.
         args:
@@ -180,7 +180,6 @@ class Model:
         last_index = min(index + batch_size, len(order))
         batch = order[index:last_index]
         # NOTICE: inputs are 4 dimensional or 2 demensional      
-        # WTF  
         if len(X.shape) == 4:
             bx = X[batch,:,:,:]
         else:
@@ -199,7 +198,7 @@ class Model:
             loss
         """
         # DONE: Implement compute loss
-        m = X.shape[1]
+        m = X.shape[0] if X.ndim == 4 else X.shape[1]
         order = self.shuffle(m, False)
         cost = 0
         for b in range(0, m, batch_size):
@@ -230,7 +229,7 @@ class Model:
         epoch = 1
         for e in tqdm.tqdm(range(epochs)):
             order = self.shuffle(m, shuffling)
-            cost = self.go_each_epoch(X, y, batch_size, order, m, epoch)
+            cost = self.one_epoch(X, y, batch_size, order, m, epoch)
             train_cost.append(cost)
             if val is not None:
                 val_cost.append(self.compute_loss(val[0], val[1], batch_size))
