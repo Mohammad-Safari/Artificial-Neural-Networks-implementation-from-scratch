@@ -43,18 +43,18 @@ class MaxPool2D:
         """
         # Implement forward pass for max pooling layer
         (batch_size, H_prev, W_prev, C_prev) = A_prev.shape
-        (f_h, f_w) = self.kernel_size
+        (kernel_size_h, kernel_size_w) = self.kernel_size
         strideh, stridew = self.stride
-        H = int(1 + (H_prev - f_h) / strideh)
-        W = int(1 + (W_prev - f_w) / stridew)
+        H = int(1 + (H_prev - kernel_size_h) / strideh)
+        W = int(1 + (W_prev - kernel_size_w) / stridew)
         A = np.zeros((batch_size, H, W, C_prev))
         for i in range(batch_size):
             for h in range(H):
                 h_start = h * strideh
-                h_end = h_start + f_h
+                h_end = h_start + kernel_size_h
                 for w in range(W):
                     w_start = w * stridew
-                    w_end = w_start + f_w
+                    w_end = w_start + kernel_size_w
                     for c in range(C_prev):
                         a_prev_slice = A_prev[i, h_start:h_end, w_start:w_end, c]
                         if self.mode == "max":

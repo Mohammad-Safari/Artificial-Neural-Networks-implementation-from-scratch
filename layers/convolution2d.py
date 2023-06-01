@@ -99,20 +99,20 @@ class Conv2D:
         (kernel_size_h, kernel_size_w, C_prev, C) = W.shape
         stride_h, stride_w = self.stride
         padding_h, padding_w = self.padding
-        H, W = self.target_shape((H_prev, W_prev))
-        Z = np.zeros((batch_size, H, W,C))
+        n_H, n_W = self.target_shape((H_prev, W_prev))
+        Z = np.zeros((batch_size, n_H, n_W,C))
         A_prev_pad = self.pad(A_prev, (padding_h, padding_w))
         for i in range(batch_size):
-            a_prev_pad = A_prev_pad[i]
-            for h in range(H):
+            a_prev_pad = A_prev_pad[i,:,:,:]
+            for h in range(n_H):
                 h_start = h*stride_h
                 h_end = h_start + kernel_size_h
-                for w in range(W):
+                for w in range(n_W):
                     w_start = w*stride_w
                     w_end = w_start + kernel_size_w
                     for c in range(C):
                         a_slice_prev = a_prev_pad[h_start:h_end, w_start:w_end, :]
-                        Z[i, h, w, c] = self.single_step_convolve(a_slice_prev, W[..., c], b[..., c])
+                        Z[i, h, w, c] = self.single_step_convolve(a_slice_prev, W[:,:,:,c], b[:,:,:,c])
         return Z
 
     def backward(self, dZ, A_prev):
@@ -132,26 +132,26 @@ class Conv2D:
         (kernel_size_h, kernel_size_w, C_prev, C) = W.shape
         stride_h, stride_w = self.stride
         padding_h, padding_w = self.padding
-        H, W = self.target_shape((H_prev, W_prev))
-        dA_prev = np.zeros_like(A_prev)
-        dW = np.zeros_like(W)
-        db = np.zeros_like(b)
+        n_H, n_W = self.target_shape((H_prev, W_prev))
+        dA_prev = np.zeros((batch_size,H_prev, W_prev, C_prev))
+        dW = np.zeros((kernel_size_h, kernel_size_w, C_prev, C))
+        db = np.zeros((1, 1, 1, C))
         A_prev_pad = self.pad(A_prev, (padding_h, padding_w))
         dA_prev_pad = self.pad(dA_prev, (padding_h, padding_w))
         for i in range(batch_size):
-            a_prev_pad = A_prev_pad[i]
-            da_prev_pad = dA_prev_pad[i]
-            for h in range(H):
-                for w in range(W):
+            a_prev_pad = A_prev_pad[i, :, :, :]
+            da_prev_pad = dA_prev_pad[i, :, :, :]
+            for h in range(n_H):
+                for w in range(n_W):
                     for c in range(C):
                         h_start = h*stride_h
                         h_end = h_start + kernel_size_h
                         w_start = w*stride_w
                         w_end = w_start + kernel_size_w
                         a_slice = a_prev_pad[h_start:h_end, w_start:w_end, :]
-                        da_prev_pad[h_start:h_end, w_start:w_end, :] += W[..., c] * dZ[i, h, w, c]
-                        dW[..., c] += a_slice * dZ[i, h, w, c]
-                        db[..., c] += dZ[i, h, w, c]
+                        da_prev_pad[h_start:h_end, w_start:w_end, :] += W[:, :, :, c] * dZ[i, h, w, c]
+                        dW[:, :, :, c] += a_slice * dZ[i, h, w, c]
+                        db[:, :, :, c] += dZ[i, h, w, c]
             dA_prev[i, :, :, :] = da_prev_pad[padding_h:-padding_h, padding_w:-padding_w, :]
         grads = [dW, db]
         return dA_prev, grads
